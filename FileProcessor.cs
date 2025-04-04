@@ -54,7 +54,6 @@ namespace TextFileCorrector
           correction.Value, 
           RegexOptions.IgnoreCase);
       }
-
       result = _phoneRegex.Replace(result, "+380 $1 $2 $3 $4");
       
       return result;
