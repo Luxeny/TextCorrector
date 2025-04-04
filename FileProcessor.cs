@@ -2,43 +2,62 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
-namespace TextCorrector
+namespace TextFileCorrector
 {
-  static class FileProcessor
+  public class FileProcessor
   {
-    public static void ProcessFolder(string folderPath, 
-                                   Dictionary<string, string> corrections)
-    {
-      if (!Directory.Exists(folderPath))
-        throw new DirectoryNotFoundException("Папка не найдена");
+    private readonly Dictionary<string, string> _wordCorrections;
+    private readonly Regex _phoneRegex;
 
-      foreach (string filePath in Directory.GetFiles(folderPath, "*.txt"))
-      {
-        ProcessFile(filePath, corrections);
-      }
-    }
-
-    private static void ProcessFile(string filePath, 
-                                  Dictionary<string, string> corrections)
+    public FileProcessor(Dictionary<string, string> wordCorrections)
     {
-      string content = File.ReadAllText(filePath, Encoding.UTF8);
-      string corrected = ApplyCorrections(content, corrections);
+      _wordCorrections = wordCorrections ?? 
+        throw new ArgumentNullException(nameof(wordCorrections));
       
-      if (content != corrected)
+      _phoneRegex = new Regex(
+        @"\((\d{3})\)\s(\d{3})-(\d{2})-(\d{2})", 
+        RegexOptions.Compiled);
+    }
+
+    public void ProcessFilesInDirectory(string directoryPath)
+    {
+      string[] textFiles = Directory.GetFiles(directoryPath, "*.txt");
+      
+      foreach (string filePath in textFiles)
       {
-        File.WriteAllText(filePath, corrected, Encoding.UTF8);
+        ProcessFile(filePath);
       }
     }
 
-    private static string ApplyCorrections(string text, 
-                                        Dictionary<string, string> corrections)
+    private void ProcessFile(string filePath)
     {
-      foreach (var pair in corrections)
+      string originalContent = File.ReadAllText(filePath, Encoding.UTF8);
+      string correctedContent = CorrectText(originalContent);
+      
+      if (originalContent != correctedContent)
       {
-        text = text.Replace(pair.Key, pair.Value);
+        File.WriteAllText(filePath, correctedContent, Encoding.UTF8);
       }
-      return text;
+    }
+
+    private string CorrectText(string text)
+    {
+      string result = text;
+      
+      foreach (var correction in _wordCorrections)
+      {
+        result = Regex.Replace(
+          result, 
+          $@"\b{correction.Key}\b", 
+          correction.Value, 
+          RegexOptions.IgnoreCase);
+      }
+
+      result = _phoneRegex.Replace(result, "+380 $1 $2 $3 $4");
+      
+      return result;
     }
   }
 }
