@@ -6,44 +6,53 @@ namespace TextFileCorrector
 {
   public class Program
   {
-    private static readonly Dictionary<string, string> s_wordCorrections = 
-      new Dictionary<string, string>()
-      {
-        {"првиет", "привет"},
-        {"пирвет", "привет"},
-        {"превед", "привет"},
-        {"здарова", "здравствуйте"},
-        {"здраствуйте", "здравствуйте"},
-        {"извеняюсь", "извиняюсь"},
-        {"абаза", "обязательно"},
-        {"пасиб", "спасибо"},
-        {"спс", "спасибо"}
-      };
-
-    public static void Main(string[] args)
+    public static void Main()
     {
-      string directoryPath;
-      
-      if (args.Length == 0)
+      var wordCorrections = GetUserCorrections();
+      string directoryPath = GetDirectoryPath();
+
+      try
       {
-        Console.WriteLine("Введите путь к директории с файлами для обработки:");
-        directoryPath = Console.ReadLine();
+        FileProcessor.ProcessFolder(directoryPath, wordCorrections);
+        Console.WriteLine("\nОбработка завершена успешно!");
       }
-      else
+      catch (Exception ex)
       {
-        directoryPath = args[0];
+        Console.WriteLine($"\nОшибка: {ex.Message}");
       }
       
-      if (!Directory.Exists(directoryPath))
+      Console.WriteLine("\nНажмите любую клавишу...");
+      Console.ReadKey();
+    }
+
+    private static string GetDirectoryPath()
+    {
+      Console.WriteLine("\nВведите путь к директории с файлами:");
+      return Console.ReadLine();
+    }
+
+    private static Dictionary<string, string> GetUserCorrections()
+    {
+      var corrections = new Dictionary<string, string>();
+      Console.WriteLine("Введите пары 'ошибка-исправление' (пустая строка - завершение):");
+
+      while (true)
       {
-        Console.WriteLine("Указанная директория не существует");
-        return;
+        Console.Write("Ошибка: ");
+        string error = Console.ReadLine();
+        if (string.IsNullOrEmpty(error)) break;
+
+        Console.Write("Исправление: ");
+        string correction = Console.ReadLine();
+        
+        if (!string.IsNullOrEmpty(correction))
+        {
+          corrections[error] = correction;
+          Console.WriteLine($"Добавлено: {error} → {correction}\n");
+        }
       }
 
-      var fileProcessor = new FileProcessor(s_wordCorrections);
-      fileProcessor.ProcessFilesInDirectory(directoryPath);
-      
-      Console.WriteLine("Обработка файлов завершена");
+      return corrections;
     }
   }
 }
