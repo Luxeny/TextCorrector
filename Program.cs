@@ -1,35 +1,49 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
-namespace TextCorrector
+namespace TextFileCorrector
 {
-  class Program
+  public class Program
   {
-    private static readonly Dictionary<string, string> s_correctionDictionary = 
-      new Dictionary<string, string>
+    private static readonly Dictionary<string, string> s_wordCorrections = 
+      new Dictionary<string, string>()
       {
         {"првиет", "привет"},
         {"пирвет", "привет"},
         {"превед", "привет"},
-        {"здарова", "здравствуйте"}
+        {"здарова", "здравствуйте"},
+        {"здраствуйте", "здравствуйте"},
+        {"извеняюсь", "извиняюсь"},
+        {"абаза", "обязательно"},
+        {"пасиб", "спасибо"},
+        {"спс", "спасибо"}
       };
 
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
-      Console.WriteLine("Введите путь к папке с файлами:");
-      string folderPath = Console.ReadLine();
-
-      try
+      string directoryPath;
+      
+      if (args.Length == 0)
       {
-        FileProcessor.ProcessFolder(folderPath, s_correctionDictionary);
-        Console.WriteLine("Обработка завершена успешно!");
+        Console.WriteLine("Введите путь к директории с файлами для обработки:");
+        directoryPath = Console.ReadLine();
       }
-      catch (Exception ex)
+      else
       {
-        Console.WriteLine($"Ошибка: {ex.Message}");
+        directoryPath = args[0];
       }
       
-      Console.ReadKey();
+      if (!Directory.Exists(directoryPath))
+      {
+        Console.WriteLine("Указанная директория не существует");
+        return;
+      }
+
+      var fileProcessor = new FileProcessor(s_wordCorrections);
+      fileProcessor.ProcessFilesInDirectory(directoryPath);
+      
+      Console.WriteLine("Обработка файлов завершена");
     }
   }
 }
