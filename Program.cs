@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace TextFileCorrector
 {
@@ -8,47 +7,46 @@ namespace TextFileCorrector
   {
     public static void Main()
     {
-      var wordCorrections = GetUserCorrections();
-      string directoryPath = GetDirectoryPath();
-
       try
       {
-        FileProcessor.ProcessFolder(directoryPath, wordCorrections);
+        var corrections = GetCorrectionDictionary();
+        
+        Console.WriteLine("\nВведите путь к директории с файлами:");
+        string directoryPath = Console.ReadLine();
+
+        new FileProcessor(corrections).ProcessFilesInDirectory(directoryPath);
+        
         Console.WriteLine("\nОбработка завершена успешно!");
       }
       catch (Exception ex)
       {
         Console.WriteLine($"\nОшибка: {ex.Message}");
       }
-      
-      Console.WriteLine("\nНажмите любую клавишу...");
-      Console.ReadKey();
+      finally
+      {
+        Console.WriteLine("\nНажмите любую клавишу для выхода...");
+        Console.ReadKey();
+      }
     }
 
-    private static string GetDirectoryPath()
+    private static Dictionary<string, string> GetCorrectionDictionary()
     {
-      Console.WriteLine("\nВведите путь к директории с файлами:");
-      return Console.ReadLine();
-    }
-
-    private static Dictionary<string, string> GetUserCorrections()
-    {
-      var corrections = new Dictionary<string, string>();
-      Console.WriteLine("Введите пары 'ошибка-исправление' (пустая строка - завершение):");
+      var corrections = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+      Console.WriteLine("Введите пары для замены (ошибка → исправление):");
 
       while (true)
       {
-        Console.Write("Ошибка: ");
-        string error = Console.ReadLine();
-        if (string.IsNullOrEmpty(error)) break;
+        Console.Write("\nОшибочное слово (Enter для завершения): ");
+        string errorWord = Console.ReadLine()?.Trim();
+        if (string.IsNullOrEmpty(errorWord)) break;
 
-        Console.Write("Исправление: ");
-        string correction = Console.ReadLine();
-        
-        if (!string.IsNullOrEmpty(correction))
+        Console.Write("Правильный вариант: ");
+        string correctWord = Console.ReadLine()?.Trim();
+
+        if (!string.IsNullOrEmpty(correctWord))
         {
-          corrections[error] = correction;
-          Console.WriteLine($"Добавлено: {error} → {correction}\n");
+          corrections[errorWord] = correctWord;
+          Console.WriteLine($"Добавлена замена: '{errorWord}' → '{correctWord}'");
         }
       }
 
